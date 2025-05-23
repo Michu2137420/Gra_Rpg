@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 60;
         PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
     }
 
@@ -102,7 +104,21 @@ public class PlayerController : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
         Debug.Log("Current Health: " + currentHealth);
     }
+    private void OnEnable()
+    {
+        ResourcesPickableItemController.OnItemPickedUp += HandleItemPickedUp;
+    }
 
+    private void OnDisable()
+    {
+        ResourcesPickableItemController.OnItemPickedUp -= HandleItemPickedUp;
+    }
+
+    private void HandleItemPickedUp()
+    {
+       PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
+        PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
+    }
 
 
 

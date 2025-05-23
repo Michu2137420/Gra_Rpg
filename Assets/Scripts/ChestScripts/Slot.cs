@@ -6,12 +6,12 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 
-//Uwaga Wazne dziala juz zmiana slotow i aktualizowanie tego jednakze nie dziala jeszcze upladowanie tej nowej listy do manadzera ekwipunku
 [RequireComponent(typeof(Image))]
 public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler 
 {
     Image TargetSlot;
     GameObject slot;
+    private GameObject itemFrame;
     public ChestInventoryController chestInventoryController;
     public PlayerInventoryController playerInventoryController;
     public Color32 normalcolor;
@@ -28,7 +28,10 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
 
     private static int slotFirst;
     private static int slotSecond;
-
+    public static class HotbarEvents
+    {
+        public static System.Action<int> OnSlotSelected;
+    }
     void Start()
     {
         slot = gameObject;
@@ -36,7 +39,55 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         TargetSlot.color = normalcolor;
         chestInventoryController = FindInParents<ChestInventoryController>(gameObject);
         playerInventoryController = FindInParents<PlayerInventoryController>(gameObject);
+        itemFrame = transform.Find("ItemFrame")?.gameObject;
+    }
 
+    void Update()
+    {
+        //logika do u¿ycia przedmiotu z paska skrótów
+        if (slotID >= 0 && slotID <= 5)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                // KeyCode.Alpha1 to 1, Alpha2 to 2, itd.
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                {
+                    if (slotID == i)
+                    {
+                        OnUseBarSlotSelected();
+                    }
+                }
+            }
+        }
+    }
+    private void OnOtherSlotSelected(int selectedSlotID)
+    {
+        if (selectedSlotID != slotID && itemFrame != null)
+        {
+            itemFrame.SetActive(false);
+        }
+    }
+
+    private void OnUseBarSlotSelected()
+    {
+        if (item != null)
+        {
+            Debug.Log($"Wybrano slot {slotID + 1} na pasku skrótów: {item.itemName}");
+
+            // Powiadom inne sloty o wyborze
+            HotbarEvents.OnSlotSelected?.Invoke(slotID);
+
+            // Zaznacz ten slot
+            if (itemFrame != null)
+            {
+                itemFrame.SetActive(true);
+            }
+        }
+        else
+        {
+            Debug.Log($"Slot {slotID + 1} na pasku skrótów jest pusty.");
+            HotbarEvents.OnSlotSelected?.Invoke(-1);
+        }
     }
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -47,6 +98,8 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         }
     }
 
+
+ 
     public void OnPointerExit(PointerEventData eventData)
     {
         TargetSlot.color = normalcolor;
@@ -368,4 +421,15 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         }
         //Debug.Log("Zaktualizowano widok ekwipunku");
     }
+    void OnEnable()
+    {
+        // Subskrybuj event
+        HotbarEvents.OnSlotSelected += OnOtherSlotSelected;
+    }
+    private void OnDisable()
+    {
+        // Odsubskrybuj event
+        HotbarEvents.OnSlotSelected -= OnOtherSlotSelected;
+    }
+
 }

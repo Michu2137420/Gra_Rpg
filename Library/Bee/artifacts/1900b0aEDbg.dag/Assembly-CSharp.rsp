@@ -450,6 +450,8 @@
 "Assets/Scripts/Player/PlayerController.cs"
 "Assets/Scripts/Player/PlayerInventoryController.cs"
 "Assets/Scripts/Player/PlayerUseBarController.cs"
+"Assets/Scripts/Resources/ResourcesController.cs"
+"Assets/Scripts/Resources/ResourcesPickableItemController.cs"
 "Assets/TextMesh Pro/Examples & Extras/Scripts/Benchmark01.cs"
 "Assets/TextMesh Pro/Examples & Extras/Scripts/Benchmark01_UGUI.cs"
 "Assets/TextMesh Pro/Examples & Extras/Scripts/Benchmark02.cs"
