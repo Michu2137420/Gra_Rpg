@@ -166,16 +166,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ddf3e5bfc35e847bf3b55deae5339c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chestInventoryController: {fileID: 0}
-  playerInventoryController: {fileID: 0}
-  normalcolor:
+  ChestInventoryController: {fileID: 0}
+  PlayerInventoryController: {fileID: 0}
+  Normalcolor:
     serializedVersion: 2
-    rgba: 4294967295
-  enterColor:
+    rgba: 0
+  EnterColor:
     serializedVersion: 2
-    rgba: 2248146943
-  itemIcon: {fileID: 0}
-  slotID: 0
+    rgba: 0
+  ItemIcon: {fileID: 0}
+  SlotID: 0
   dragOnSurfaces: 1
 --- !u!1 &3652988900003061334
 GameObject:
@@ -264,7 +264,7 @@ GameObject:
   - component: {fileID: 3469150307530283208}
   - component: {fileID: 1848267495425382910}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: ItemAmountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -403,7 +403,7 @@ GameObject:
   - component: {fileID: 1523395661050729682}
   - component: {fileID: 1544096843603453443}
   m_Layer: 5
-  m_Name: TextBackground
+  m_Name: AmountOfItemText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

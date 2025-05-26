@@ -477,6 +477,7 @@ MonoBehaviour:
     itemAmount: 1
     itemType: 0
     itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
+    isStackable: 1
   - itemName: "Co\u015B"
     itemDescription: "Co\u015B"
     itemID: 1
@@ -484,6 +485,7 @@ MonoBehaviour:
     itemAmount: 1
     itemType: 0
     itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
+    isStackable: 1
   - itemName: "Co\u015B"
     itemDescription: "Co\u015B"
     itemID: 1
@@ -491,6 +493,7 @@ MonoBehaviour:
     itemAmount: 1
     itemType: 0
     itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
+    isStackable: 0
   speed: 1
   maxHealth: 100
   currentHealth: 0
@@ -1059,6 +1062,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1316668536}
     - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
       propertyPath: initialItems.Array.data[0].itemIcon
       value: 
       objectReference: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
@@ -1073,6 +1080,62 @@ PrefabInstance:
     - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
       propertyPath: initialItems.Array.data[2].itemName
       value: siekiera
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemID
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemID
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemIcon
+      value: 
+      objectReference: {fileID: 21300000, guid: f5e853af8656e25428b72c63612959c4, type: 3}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemName
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemIcon
+      value: 
+      objectReference: {fileID: 21300000, guid: f5e853af8656e25428b72c63612959c4, type: 3}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemName
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].isStackable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].isStackable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[1].itemDescription
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2035262496114912675, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+      propertyPath: chestInitialItems.Array.data[2].itemDescription
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2911169042109629361, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
       propertyPath: m_LocalPosition.x

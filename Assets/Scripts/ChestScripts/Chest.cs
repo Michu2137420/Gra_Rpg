@@ -6,7 +6,7 @@ public class Chest : MonoBehaviour
 {
     public ChestInventoryController chestInventoryController;
     public int chestID;
-    public List<InventoryItemDatabes.Item> initialItems;
+    public List<InventoryItemDatabes.Item> chestInitialItems;
     public  List<InventoryItemDatabes.Item> itemsInChest;
 
     private static int nextChestID = 0; 
@@ -19,32 +19,107 @@ public class Chest : MonoBehaviour
         // Automatyczne nadanie unikalnego ID
         chestID = nextChestID++;
 
-        // Inicjalizacja listy o wielkoœci równej liczbie slotów w skrzyni, najpierw pierwotne itemy, reszta null
+        InitializeItemsInList();
+    }
+    private void InitializeItemsInList()
+    {
+        // Inicjalizacja listy o wielkoœci równej liczbie slotów w Inv
         if (chestInventoryController != null)
         {
-            itemsInChest = new List<InventoryItemDatabes.Item>(chestInventoryController.numberOfSlots);
             int slots = chestInventoryController.numberOfSlots;
-            int initialCount = initialItems != null ? initialItems.Count : 0;
 
-            // Dodaj pierwotne itemy
+            // Najpierw stwórz pust¹ listê wype³nion¹ nullami
+            itemsInChest = new List<InventoryItemDatabes.Item>(slots);
             for (int i = 0; i < slots; i++)
             {
-                if (initialItems != null && i < initialItems.Count)
+                itemsInChest.Add(null);
+            }
+
+            // Teraz dodaj pocz¹tkowe przedmioty u¿ywaj¹c AddItemToInventory
+            if (chestInitialItems != null)
+            {
+                foreach (var initialItem in chestInitialItems)
                 {
-                    itemsInChest.Add(initialItems[i]);
-                }
-                else
-                {
-                    itemsInChest.Add(null);
+                    if (initialItem != null)
+                    {
+                        // U¿ywamy AddItemToInventory aby zachowaæ logikê stackowania
+                        bool success = AddItemToInventory(initialItem);
+
+                        if (!success)
+                        {
+                            Debug.LogWarning($"Nie uda³o siê dodaæ pocz¹tkowego przedmiotu: {initialItem.itemName}. Inwentarz mo¿e byæ pe³ny.");
+                        }
+                    }
                 }
             }
         }
         else
         {
             itemsInChest = new List<InventoryItemDatabes.Item>();
+            Debug.LogWarning("PlayerInventoryController is null!");
         }
     }
+    public bool AddItemToInventory(InventoryItemDatabes.Item newItem)
+    {
+        if (newItem == null)
+            return false;
 
+        // Jeœli item jest stackowalny, spróbuj znaleŸæ ju¿ istniej¹cy taki sam i zwiêksz iloœæ
+        if (newItem.isStackable)
+        {
+            for (int i = 0; i < itemsInChest.Count; i++)
+            {
+                var existingItem = itemsInChest[i];
+                if (existingItem != null &&
+                    existingItem.itemID == newItem.itemID &&
+                    existingItem.isStackable)
+                {
+                    // Zwiêksz iloœæ istniej¹cego itemu
+                    existingItem.itemAmount += newItem.itemAmount;
+
+                    // Odœwie¿ wyœwietlanie inwentarza jeœli jest otwarty
+                    if (chestInventoryController.isOpen)
+                    {
+                        chestInventoryController.DisplayItemsInInventory(itemsInChest);
+                    }
+
+
+                    return true;
+                }
+            }
+        }
+
+        // Jeœli nie stackowalny lub nie znaleziono stackowalnego, dodaj do pierwszego wolnego slotu
+        for (int i = 0; i < itemsInChest.Count; i++)
+        {
+            if (itemsInChest[i] == null)
+            {
+                // Stwórz now¹ kopiê itemu aby unikn¹æ problemów z referencjami
+                itemsInChest[i] = new InventoryItemDatabes.Item(
+                    newItem.itemName,
+                    newItem.itemDescription,
+                    newItem.itemID,
+                    newItem.itemValue,
+                    newItem.itemAmount,
+                    newItem.itemIcon,
+                    newItem.itemType
+                );
+                itemsInChest[i].isStackable = newItem.isStackable;
+
+                // Odœwie¿ wyœwietlanie inwentarza jeœli jest otwarty
+                if (chestInventoryController.isOpen)
+                {
+                    chestInventoryController.DisplayItemsInInventory(itemsInChest);
+                }
+
+                return true;
+            }
+        }
+
+        // Brak miejsca w inwentarzu
+        Debug.Log("Brak miejsca w inwentarzu!");
+        return false;
+    }
     void Start()
     {
         ManagerForListOfChestInventory.instance.AddChestItemsToList(itemsInChest, chestID);
@@ -85,10 +160,7 @@ public class Chest : MonoBehaviour
             chestInventoryController.chestInventory.SetActive(!chestInventoryController.chestInventory.activeInHierarchy);
             chestInventoryController.isOpen = !chestInventoryController.isOpen;
             chestInventoryController.DisplayItemsInInventory(itemsInChest);
-            foreach (var slot in FindObjectsByType<Slot>(FindObjectsSortMode.None))
-            {
-                slot.SetCurrentChestItems(itemsInChest);
-            }
+
         }
     }
 }

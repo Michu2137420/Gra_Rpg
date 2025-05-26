@@ -5,54 +5,69 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
+using System;
 
 [RequireComponent(typeof(Image))]
-public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler 
+public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     Image TargetSlot;
-    GameObject slot;
-    private GameObject itemFrame;
-    public ChestInventoryController chestInventoryController;
-    public PlayerInventoryController playerInventoryController;
-    public Color32 normalcolor;
-    public Color32 enterColor;
-    public Sprite itemIcon;
-    public int slotID;
-    private InventoryItemDatabes.Item item; 
-    private List<InventoryItemDatabes.Item> currentlyListOfSwapingItemsInChest;
-    private List<InventoryItemDatabes.Item> currentlyListOfSwapingItemsInPlayer;
+    GameObject SlotGameobject;
+    private GameObject _itemFrame;
+    private Image _itemIconImage;
+    public ChestInventoryController ChestInventoryController;
+    public PlayerInventoryController PlayerInventoryController;
+    public Color32 Normalcolor;
+    public Color32 EnterColor;
+    public Sprite ItemIcon;
+    public int SlotID;
+    private InventoryItemDatabes.Item _item;
     public bool dragOnSurfaces = true;
 
     private GameObject m_DraggingIcon;
     private RectTransform m_DraggingPlane;
 
-    private static int slotFirst;
-    private static int slotSecond;
+    private static int _slotFirst { get; set; }
+    private static int _slotSecond { get; set; }
+
+    // Events dla komunikacji z ChestTransferingItemsLogic
+    public static event Action<Slot, Slot> OnItemChangeSlotInTheSameList;
+    public static event Action<Slot, Slot> OnItemTransferBetweenInventories;
+    public static event Action<Slot, PointerEventData> OnItemDropToInventory;
+
+    //event do obs³ugi wyboru slotu na pasku skrótów obs³ugiwany w PlayerController 
     public static class HotbarEvents
     {
-        public static System.Action<int> OnSlotSelected;
-    }
-    void Start()
-    {
-        slot = gameObject;
-        TargetSlot = GetComponent<Image>();
-        TargetSlot.color = normalcolor;
-        chestInventoryController = FindInParents<ChestInventoryController>(gameObject);
-        playerInventoryController = FindInParents<PlayerInventoryController>(gameObject);
-        itemFrame = transform.Find("ItemFrame")?.gameObject;
+        public static Action<int> OnSlotSelected;
     }
 
+    /// <summary>
+    /// Inicjalizuje referencje do slotu, kontrolerów ekwipunku oraz ustawia kolor pocz¹tkowy.
+    /// </summary>
+    void Start()
+    {
+        SlotGameobject = gameObject;
+        TargetSlot = GetComponent<Image>();
+        _itemIconImage = transform.Find("ItemIcon")?.GetComponent<Image>();
+        //TargetSlot.color = Normalcolor;
+        ChestInventoryController = FindInParents<ChestInventoryController>(gameObject);
+        PlayerInventoryController = FindInParents<PlayerInventoryController>(gameObject);
+        _itemFrame = transform.Find("ItemFrame")?.gameObject;
+    }
+
+    /// <summary>
+    /// Obs³uguje wybór slotu na pasku skrótów po naciœniêciu odpowiedniego klawisza.
+    /// </summary>
     void Update()
     {
         //logika do u¿ycia przedmiotu z paska skrótów
-        if (slotID >= 0 && slotID <= 5)
+        if (SlotID >= 0 && SlotID <= 5)
         {
             for (int i = 0; i < 6; i++)
             {
                 // KeyCode.Alpha1 to 1, Alpha2 to 2, itd.
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i))
                 {
-                    if (slotID == i)
+                    if (SlotID == i)
                     {
                         OnUseBarSlotSelected();
                     }
@@ -60,57 +75,87 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
             }
         }
     }
+
+    /// <summary>
+    /// Subskrybuje event wyboru slotu na pasku skrótów.
+    /// </summary>
+    void OnEnable()
+    {
+        // Subskrybuj event
+        HotbarEvents.OnSlotSelected += OnOtherSlotSelected;
+    }
+
+    /// <summary>
+    /// Odsubskrybowuje event wyboru slotu na pasku skrótów.
+    /// </summary>
+    private void OnDisable()
+    {
+        // Odsubskrybuj event
+        HotbarEvents.OnSlotSelected -= OnOtherSlotSelected;
+    }
+
+    /// <summary>
+    /// Ukrywa ramkê zaznaczenia, jeœli wybrano inny slot na pasku skrótów.
+    /// </summary>
     private void OnOtherSlotSelected(int selectedSlotID)
     {
-        if (selectedSlotID != slotID && itemFrame != null)
+        if (selectedSlotID != SlotID && _itemFrame != null)
         {
-            itemFrame.SetActive(false);
+            _itemFrame.SetActive(false);
         }
     }
 
+    /// <summary>
+    /// Obs³uguje logikê wyboru slotu na pasku skrótów (zaznaczenie, powiadomienie innych slotów).
+    /// </summary>
     private void OnUseBarSlotSelected()
     {
-        if (item != null)
+        if (_item != null)
         {
-            Debug.Log($"Wybrano slot {slotID + 1} na pasku skrótów: {item.itemName}");
+            Debug.Log($"Wybrano slot {SlotID + 1} na pasku skrótów: {_item.itemName}");
 
             // Powiadom inne sloty o wyborze
-            HotbarEvents.OnSlotSelected?.Invoke(slotID);
+            HotbarEvents.OnSlotSelected?.Invoke(SlotID);
 
             // Zaznacz ten slot
-            if (itemFrame != null)
+            if (_itemFrame != null)
             {
-                itemFrame.SetActive(true);
+                _itemFrame.SetActive(true);
             }
         }
         else
         {
-            Debug.Log($"Slot {slotID + 1} na pasku skrótów jest pusty.");
+            Debug.Log($"Slot {SlotID + 1} na pasku skrótów jest pusty.");
             HotbarEvents.OnSlotSelected?.Invoke(-1);
         }
     }
+
+    /// <summary>
+    /// Wywo³ywana po klikniêciu na slot - wyœwietla informacje o przedmiocie.
+    /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (item != null)
+        if (_item != null)
         {
-            //Debug.Log("Clicked on item: " + item.itemIcon);
-            InfoItemSlot.instance.DisplayItemIconWhenClicked(item);
+            InfoItemSlot.instance.DisplayItemIconWhenClicked(_item);
         }
     }
 
-
- 
+    /// <summary>
+    /// Przywraca kolor slotu po opuszczeniu kursora.
+    /// </summary>
     public void OnPointerExit(PointerEventData eventData)
     {
-        TargetSlot.color = normalcolor;
     }
+
+    /// <summary>
+    /// Zmienia kolor slotu po najechaniu kursorem oraz ustawia indeksy slotów do zamiany.
+    /// </summary>
     public void OnPointerEnter(PointerEventData eventData)
     {
-        TargetSlot.color = enterColor;
-        //Debug.Log("Pointer Entered Slot: " + slotID);
 
         // Ustaw slotSecond na ten slot, bo na niego naje¿d¿amy
-        slotSecond = slotID;
+        _slotSecond = SlotID;
 
         // Jeœli przeci¹gamy inny slot, ustaw slotFirst na slot przeci¹gany
         if (eventData.pointerDrag != null && eventData.pointerDrag != gameObject)
@@ -118,39 +163,62 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
             Slot draggedSlot = eventData.pointerDrag.GetComponent<Slot>();
             if (draggedSlot != null)
             {
-                slotFirst = draggedSlot.slotID;
-                //Debug.Log("Dragged slotID (slotFirst): " + slotFirst + ", Entered slotID (slotSecond): " + slotSecond);
+                _slotFirst = draggedSlot.SlotID;
             }
             else
             {
-                slotFirst = slotID;
-                //Debug.Log("Dragged slot null, slotFirst i slotSecond: " + slotFirst);
+                _slotFirst = SlotID;
             }
         }
         else
         {
-            slotFirst = slotID;
-            //Debug.Log("Brak przeci¹gania, slotFirst i slotSecond: " + slotFirst);
+            _slotFirst = SlotID;
         }
     }
-    public void SetItemIcon(Sprite icon)
+
+
+
+    /// <summary>
+    /// Zwraca aktualn¹ listê przedmiotów gracza bezpoœrednio z kontrolera
+    /// </summary>
+    public List<InventoryItemDatabes.Item> GetCurrentPlayerItems()
     {
-        if (TargetSlot == null)
-            TargetSlot = GetComponent<Image>();
-        TargetSlot.sprite = icon;
-    }
-    public void SetCurrentChestItems(List<InventoryItemDatabes.Item> items)
-    {
-        currentlyListOfSwapingItemsInChest = items;
-    }
-    public void SetCurrentPlayerItems(List<InventoryItemDatabes.Item> items)
-    {
-        currentlyListOfSwapingItemsInPlayer = items;
+        if (PlayerInventoryController != null)
+        {
+            return PlayerInventoryController.currentyDisplayedItems;
+        }
+
+        // Fallback - spróbuj znaleŸæ PlayerController w scenie
+        var playerController = FindAnyObjectByType<PlayerController>();
+        if (playerController != null)
+        {
+            return playerController.PlayerItems;
+        }
+
+        Debug.LogWarning("Nie mo¿na znaleŸæ PlayerInventoryController lub PlayerController!");
+        return null;
     }
 
+    /// <summary>
+    /// Zwraca aktualn¹ listê przedmiotów skrzynki bezpoœrednio z kontrolera
+    /// </summary>
+    public List<InventoryItemDatabes.Item> GetCurrentChestItems()
+    {
+        if (ChestInventoryController != null)
+        {
+            return ChestInventoryController.currentyDisplayedItems;
+        }
+
+        Debug.LogWarning("Nie mo¿na znaleŸæ ChestInventoryController!");
+        return null;
+    }
+
+    /// <summary>
+    /// Rozpoczyna przeci¹ganie przedmiotu - tworzy wizualn¹ reprezentacjê przeci¹ganego obiektu.
+    /// </summary>
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (item == null || item.itemIcon == null)
+        if (_item == null || _item.itemIcon == null)
             return;
 
         var canvas = FindInParents<Canvas>(gameObject);
@@ -161,7 +229,7 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         m_DraggingIcon.transform.SetAsLastSibling();
 
         var image = m_DraggingIcon.AddComponent<Image>();
-        image.sprite = item.itemIcon;
+        image.sprite = _item.itemIcon;
         // Ustaw rozmiar przeci¹ganego obrazka na 50x50 pikseli
         var rt = m_DraggingIcon.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(50, 50);
@@ -172,12 +240,18 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         SetDraggedPosition(eventData);
     }
 
+    /// <summary>
+    /// Aktualizuje pozycjê przeci¹ganego obiektu podczas przeci¹gania.
+    /// </summary>
     public void OnDrag(PointerEventData data)
     {
         if (m_DraggingIcon != null)
             SetDraggedPosition(data);
     }
 
+    /// <summary>
+    /// Ustawia pozycjê przeci¹ganego obiektu na podstawie pozycji kursora.
+    /// </summary>
     private void SetDraggedPosition(PointerEventData data)
     {
         if (dragOnSurfaces && data.pointerEnter != null && data.pointerEnter.transform is RectTransform)
@@ -192,6 +266,9 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         }
     }
 
+    /// <summary>
+    /// Koñczy przeci¹ganie przedmiotu - wywo³uje odpowiednie eventy dla ChestTransferingItemsLogic.
+    /// </summary>
     public void OnEndDrag(PointerEventData eventData)
     {
         Transform pointerTransform = eventData.pointerEnter != null ? eventData.pointerEnter.transform : null;
@@ -201,85 +278,43 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
             targetSlot = pointerTransform.GetComponent<Slot>();
             pointerTransform = pointerTransform.parent;
         }
+
         if (targetSlot != null && targetSlot != this)
         {
             // Okreœl Ÿród³owy slot (dragged) i docelowy (target)
             Slot draggedSlot = eventData.pointerDrag != null ? eventData.pointerDrag.GetComponent<Slot>() : null;
             if (draggedSlot != null && draggedSlot != targetSlot)
             {
-                // Przypadek: przeci¹gamy z gracza do skrzynki
-                if (draggedSlot.playerInventoryController != null && targetSlot.chestInventoryController != null)
+                // Przypadek: przeci¹gamy miêdzy ró¿nymi ekwipunkami
+                if ((draggedSlot.PlayerInventoryController != null && targetSlot.ChestInventoryController != null) ||
+                    (draggedSlot.ChestInventoryController != null && targetSlot.PlayerInventoryController != null))
                 {
-                    draggedSlot.TryMoveOrSwapBetweenInventories(targetSlot);
-                }
-                // Przypadek: przeci¹gamy ze skrzynki do gracza
-                else if (draggedSlot.chestInventoryController != null && targetSlot.playerInventoryController != null)
-                {
-                    draggedSlot.TryMoveOrSwapBetweenInventories(targetSlot);
+                    OnItemTransferBetweenInventories?.Invoke(draggedSlot, targetSlot);
                 }
                 // Przypadek: przeci¹gamy w obrêbie tego samego ekwipunku (swap w tej samej liœcie)
-                else if (draggedSlot.playerInventoryController != null && targetSlot.playerInventoryController != null)
+                else if ((draggedSlot.PlayerInventoryController != null && targetSlot.PlayerInventoryController != null) ||
+                         (draggedSlot.ChestInventoryController != null && targetSlot.ChestInventoryController != null))
                 {
-                    SwapItemsInSameList(draggedSlot.slotID, targetSlot.slotID, draggedSlot.currentlyListOfSwapingItemsInPlayer);
-                }
-                else if (draggedSlot.chestInventoryController != null && targetSlot.chestInventoryController != null)
-                {
-                    SwapItemsInSameList(draggedSlot.slotID, targetSlot.slotID, draggedSlot.currentlyListOfSwapingItemsInChest);
+                    OnItemChangeSlotInTheSameList?.Invoke(draggedSlot, targetSlot);
                 }
             }
         }
         else
         {
-            // Nowa logika: sprawdŸ, czy kursor jest nad ekwipunkiem (ale nie nad slotem)
-            var chestCtrl = FindInParents<ChestInventoryController>(eventData.pointerEnter);
-            var playerCtrl = FindInParents<PlayerInventoryController>(eventData.pointerEnter);
-
-            // Przeci¹gamy z gracza do skrzynki
-            if (playerInventoryController != null && chestCtrl != null)
-            {
-                int freeIndex = chestCtrl.currentyDisplayedItems.FindIndex(i => i == null);
-                if (freeIndex != -1 && currentlyListOfSwapingItemsInPlayer[slotID] != null)
-                {
-                    chestCtrl.currentyDisplayedItems[freeIndex] = currentlyListOfSwapingItemsInPlayer[slotID];
-                    currentlyListOfSwapingItemsInPlayer[slotID] = null;
-                    chestCtrl.DisplayItemsInInventory(chestCtrl.currentyDisplayedItems);
-                    playerInventoryController.DisplayItemsInInventory(currentlyListOfSwapingItemsInPlayer);
-                }
-            }
-            // Przeci¹gamy ze skrzynki do gracza
-            else if (chestInventoryController != null && playerCtrl != null)
-            {
-                int freeIndex = playerCtrl.currentyDisplayedItems.FindIndex(i => i == null);
-                if (freeIndex != -1 && currentlyListOfSwapingItemsInChest[slotID] != null)
-                {
-                    playerCtrl.currentyDisplayedItems[freeIndex] = currentlyListOfSwapingItemsInChest[slotID];
-                    currentlyListOfSwapingItemsInChest[slotID] = null;
-                    playerCtrl.DisplayItemsInInventory(playerCtrl.currentyDisplayedItems);
-                    chestInventoryController.DisplayItemsInInventory(currentlyListOfSwapingItemsInChest);
-                }
-            }
+            // Upuszczamy na pusty obszar ekwipunku (ale nie na slot)
+            OnItemDropToInventory?.Invoke(this, eventData);
         }
-        // Debug.Log("Witam");
+
+        // Usuñ wizualn¹ reprezentacjê przeci¹ganego obiektu
         if (m_DraggingIcon != null)
         {
             Destroy(m_DraggingIcon);
         }
-        UpdateInventoryView();
+    }
 
-    }
-    public void SwapItemsInSameList(int firstIndex, int secondIndex, List<InventoryItemDatabes.Item> itemList)
-    {
-        if (itemList == null || firstIndex < 0 || secondIndex < 0 ||
-            firstIndex >= itemList.Count || secondIndex >= itemList.Count)
-        {
-            Debug.LogWarning("B³êdne indeksy lub lista!");
-            return;
-        }
-        var temp = itemList[firstIndex];
-        itemList[firstIndex] = itemList[secondIndex];
-        itemList[secondIndex] = temp;
-        UpdateInventoryView();
-    }
+    /// <summary>
+    /// Wyszukuje komponent typu T w rodzicach danego obiektu.
+    /// </summary>
     static public T FindInParents<T>(GameObject go) where T : Component
     {
         if (go == null) return null;
@@ -296,140 +331,20 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
         return comp;
     }
 
+    public void SetItemIcon(Sprite icon)
+    {
+        if (TargetSlot == null)
+            TargetSlot = GetComponent<Image>();
+        TargetSlot.sprite = icon;
+    }
     public void SetItem(InventoryItemDatabes.Item item)
     {
-        this.item = item;
+        this._item = item;
         // Nie ustawiaj ikony na slocie, tylko przechowuj sprite w itemIcon
         if (item != null && item.itemIcon != null)
-            itemIcon = item.itemIcon;
+            ItemIcon = item.itemIcon;
         else
-            itemIcon = null;
-        SetItemIcon(null);
+            ItemIcon = null;
+        //SetItemIcon(null);
     }
-
- 
-
-    public void MoveOrSwapBetweenLists(int fromIndex, List<InventoryItemDatabes.Item> fromList, int toIndex, List<InventoryItemDatabes.Item> toList, MonoBehaviour fromController, MonoBehaviour toController)
-    {
-        // Dodaj debugowanie, aby sprawdziæ, która lista jest Ÿród³owa, a która docelowa
-        string fromType = fromController is ChestInventoryController ? "CHEST" : "PLAYER";
-        string toType = toController is ChestInventoryController ? "CHEST" : "PLAYER";
-        Debug.Log($"[MoveOrSwapBetweenLists] FROM: {fromType} (index {fromIndex}) -> TO: {toType} (index {toIndex})");
-
-        if (fromList == null || toList == null ||
-            fromIndex < 0 || fromIndex >= fromList.Count ||
-            toIndex < 0 || toIndex >= toList.Count)
-        {
-            Debug.LogWarning("B³êdne indeksy lub listy!");
-            return;
-        }
-
-        var fromItem = fromList[fromIndex];
-        var toItem = toList[toIndex];
-
-        // Jeœli nie ma co przenosiæ, wyjdŸ
-        if (fromItem == null && toItem == null)
-            return;
-
-        // Przenoszenie do pustego slotu
-        if (fromItem != null && toItem == null)
-        {
-            toList[toIndex] = fromItem;
-            fromList[fromIndex] = null;
-            Debug.Log($"Przeniesiono item z {fromType}[{fromIndex}] do {toType}[{toIndex}]");
-        }
-        // Przenoszenie z pustego slotu (nie powinno siê zdarzyæ, ale na wszelki wypadek)
-        else if (fromItem == null && toItem != null)
-        {
-            fromList[fromIndex] = toItem;
-            toList[toIndex] = null;
-            Debug.Log($"Przeniesiono item z {toType}[{toIndex}] do {fromType}[{fromIndex}]");
-        }
-        // Zamiana miejscami
-        else
-        {
-            fromList[fromIndex] = toItem;
-            toList[toIndex] = fromItem;
-            Debug.Log($"Zamieniono itemy pomiêdzy {fromType}[{fromIndex}] a {toType}[{toIndex}]");
-        }
-
-        // Aktualizuj widoki
-        if (fromController is ChestInventoryController chestCtrl1)
-            chestCtrl1.DisplayItemsInInventory(fromList);
-        else if (fromController is PlayerInventoryController playerCtrl1)
-            playerCtrl1.DisplayItemsInInventory(fromList);
-
-        if (toController is ChestInventoryController chestCtrl2)
-            chestCtrl2.DisplayItemsInInventory(toList);
-        else if (toController is PlayerInventoryController playerCtrl2)
-            playerCtrl2.DisplayItemsInInventory(toList);
-
-        Debug.Log($"[MoveOrSwapBetweenLists] Zaktualizowano widoki: {fromType} oraz {toType}");
-    }
-    public void TryMoveOrSwapBetweenInventories(Slot targetSlot)
-    {
-        bool thisIsChest = chestInventoryController != null;
-        bool targetIsChest = targetSlot.chestInventoryController != null;
-        bool thisIsPlayer = playerInventoryController != null;
-        bool targetIsPlayer = targetSlot.playerInventoryController != null;
-
-        // Wymiana tylko jeœli sloty s¹ z ró¿nych ekwipunków
-        if ((thisIsChest && targetIsPlayer) || (thisIsPlayer && targetIsChest))
-        {
-            List<InventoryItemDatabes.Item> fromList, toList;
-            int fromIndex, toIndex;
-            MonoBehaviour fromCtrl, toCtrl;
-
-            // Poprawka: zawsze "this" to Ÿród³o, "targetSlot" to cel
-            if (thisIsPlayer && targetIsChest)
-            {
-                fromList = currentlyListOfSwapingItemsInPlayer;
-                toList = targetSlot.currentlyListOfSwapingItemsInChest;
-                fromIndex = slotID;
-                toIndex = targetSlot.slotID;
-                fromCtrl = playerInventoryController;
-                toCtrl = targetSlot.chestInventoryController;
-            }
-            else if (thisIsChest && targetIsPlayer)
-            {
-                fromList = currentlyListOfSwapingItemsInChest;
-                toList = targetSlot.currentlyListOfSwapingItemsInPlayer;
-                fromIndex = slotID;
-                toIndex = targetSlot.slotID;
-                fromCtrl = chestInventoryController;
-                toCtrl = targetSlot.playerInventoryController;
-            }
-            else
-            {
-                // Nie powinno siê zdarzyæ
-                Debug.LogWarning("Nieprawid³owa kombinacja slotów!");
-                return;
-            }
-
-            MoveOrSwapBetweenLists(fromIndex, fromList, toIndex, toList, fromCtrl, toCtrl);
-        }
-    }
-    public void UpdateInventoryView()
-    {
-        if (chestInventoryController != null)
-        {
-            chestInventoryController.DisplayItemsInInventory(currentlyListOfSwapingItemsInChest);
-        }
-        else if (playerInventoryController != null)
-        {
-            playerInventoryController.DisplayItemsInInventory(currentlyListOfSwapingItemsInPlayer);
-        }
-        //Debug.Log("Zaktualizowano widok ekwipunku");
-    }
-    void OnEnable()
-    {
-        // Subskrybuj event
-        HotbarEvents.OnSlotSelected += OnOtherSlotSelected;
-    }
-    private void OnDisable()
-    {
-        // Odsubskrybuj event
-        HotbarEvents.OnSlotSelected -= OnOtherSlotSelected;
-    }
-
 }

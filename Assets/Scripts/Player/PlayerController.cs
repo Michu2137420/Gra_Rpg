@@ -23,30 +23,111 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
-        // Inicjalizacja listy o wielkoœci równej liczbie slotów w Inv, najpierw pierwotne itemy, reszta null
+       InitializeItemsInList();
+    }
+    private void InitializeItemsInList()
+    {
+        // Inicjalizacja listy o wielkoœci równej liczbie slotów w Inv
         if (PlayerInventoryController != null)
         {
-            PlayerItems = new List<InventoryItemDatabes.Item>(PlayerInventoryController.numberOfSlots);
             int slots = PlayerInventoryController.numberOfSlots;
-            int initialCount = PlayerInitialInventoryItems != null ? PlayerInitialInventoryItems.Count : 0;
 
-            // Dodaj pierwotne itemy
+            // Najpierw stwórz pust¹ listê wype³nion¹ nullami
+            PlayerItems = new List<InventoryItemDatabes.Item>(slots);
             for (int i = 0; i < slots; i++)
             {
-                if (PlayerInitialInventoryItems != null && i < PlayerInitialInventoryItems.Count)
+                PlayerItems.Add(null);
+            }
+
+            // Teraz dodaj pocz¹tkowe przedmioty u¿ywaj¹c AddItemToInventory
+            if (PlayerInitialInventoryItems != null)
+            {
+                foreach (var initialItem in PlayerInitialInventoryItems)
                 {
-                    PlayerItems.Add(PlayerInitialInventoryItems[i]);
-                }
-                else
-                {
-                    PlayerItems.Add(null);
+                    if (initialItem != null)
+                    {
+                        // U¿ywamy AddItemToInventory aby zachowaæ logikê stackowania
+                        bool success = AddItemToInventory(initialItem);
+
+                        if (!success)
+                        {
+                            Debug.LogWarning($"Nie uda³o siê dodaæ pocz¹tkowego przedmiotu: {initialItem.itemName}. Inwentarz mo¿e byæ pe³ny.");
+                        }
+                    }
                 }
             }
         }
         else
         {
             PlayerItems = new List<InventoryItemDatabes.Item>();
+            Debug.LogWarning("PlayerInventoryController is null!");
         }
+    }
+    public bool AddItemToInventory(InventoryItemDatabes.Item newItem)
+    {
+        if (newItem == null)
+            return false;
+
+        // Jeœli item jest stackowalny, spróbuj znaleŸæ ju¿ istniej¹cy taki sam i zwiêksz iloœæ
+        if (newItem.isStackable)
+        {
+            for (int i = 0; i < PlayerItems.Count; i++)
+            {
+                var existingItem = PlayerItems[i];
+                if (existingItem != null &&
+                    existingItem.itemID == newItem.itemID &&
+                    existingItem.isStackable)
+                {
+                    // Zwiêksz iloœæ istniej¹cego itemu
+                    existingItem.itemAmount += newItem.itemAmount;
+
+                    // Odœwie¿ wyœwietlanie inwentarza jeœli jest otwarty
+                    if (PlayerInventoryController.isOpen)
+                    {
+                        PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
+                    }
+
+                    // Odœwie¿ pasek u¿ycia
+                    PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
+
+                    return true;
+                }
+            }
+        }
+
+        // Jeœli nie stackowalny lub nie znaleziono stackowalnego, dodaj do pierwszego wolnego slotu
+        for (int i = 0; i < PlayerItems.Count; i++)
+        {
+            if (PlayerItems[i] == null)
+            {
+                // Stwórz now¹ kopiê itemu aby unikn¹æ problemów z referencjami
+                PlayerItems[i] = new InventoryItemDatabes.Item(
+                    newItem.itemName,
+                    newItem.itemDescription,
+                    newItem.itemID,
+                    newItem.itemValue,
+                    newItem.itemAmount,
+                    newItem.itemIcon,
+                    newItem.itemType
+                );
+                PlayerItems[i].isStackable = newItem.isStackable;
+
+                // Odœwie¿ wyœwietlanie inwentarza jeœli jest otwarty
+                if (PlayerInventoryController.isOpen)
+                {
+                    PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
+                }
+
+                // Odœwie¿ pasek u¿ycia
+                PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
+
+                return true;
+            }
+        }
+
+        // Brak miejsca w inwentarzu
+        Debug.Log("Brak miejsca w inwentarzu!");
+        return false;
     }
     void Update()
     {
@@ -91,10 +172,6 @@ public class PlayerController : MonoBehaviour
             if (nowOpen)
             {
                 PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
-                foreach (var slot in FindObjectsByType<Slot>(FindObjectsSortMode.None))
-                {
-                    slot.SetCurrentPlayerItems(PlayerItems);
-                }
             }
         }
     }
