@@ -47,7 +47,7 @@ public class PlayerUseBarController : MonoBehaviour
         {
             if (slots[i] == null) continue;
 
-            if (i < currentyDisplayedForUseBarItems.Count && currentyDisplayedForUseBarItems[i] != null)
+            if (i < currentyDisplayedForUseBarItems.Count && currentyDisplayedForUseBarItems[i] != null && currentyDisplayedForUseBarItems[i].itemAmount >= 0)
             {
                 // Wyświetl przedmiot
                 InventoryItemDatabes.Item item = currentyDisplayedForUseBarItems[i];
@@ -55,7 +55,7 @@ public class PlayerUseBarController : MonoBehaviour
             }
             else
             {
-                // Wyczyść slot jeśli nie ma przedmiotu
+                // Wyczyść slot jeśli nie ma przedmiotu lub ilość <= 0
                 ClearSlot(slots[i]);
             }
             slots[i].SlotID = i;
@@ -79,9 +79,11 @@ public class PlayerUseBarController : MonoBehaviour
             return;
         }
 
+        // WAŻNE: Ustaw sprite i pokaż ItemIcon
         iconImage.sprite = item.itemIcon;
-        slot.SetItem(item);
         itemIconTransform.gameObject.SetActive(true);
+
+        slot.SetItem(item);
 
         // Obsługa tekstu z ilością przedmiotów
         UpdateAmountText(itemIconTransform, item, slotIndex);
@@ -134,7 +136,13 @@ public class PlayerUseBarController : MonoBehaviour
         Transform itemIconTransform = slot.transform.Find("ItemIcon");
         if (itemIconTransform != null)
         {
-            //itemIconTransform.gameObject.SetActive(false);
+            // WAŻNE: Wyczyść sprite i ukryj ItemIcon
+            Image iconImage = itemIconTransform.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                iconImage.sprite = null;
+            }
+            itemIconTransform.gameObject.SetActive(false);
 
             // Wyczyść tekst ilości
             Transform amountOfItemTextTransform = itemIconTransform.Find("AmountOfItemText");
@@ -155,6 +163,5 @@ public class PlayerUseBarController : MonoBehaviour
         }
 
         slot.SetItem(null);
-
     }
 }

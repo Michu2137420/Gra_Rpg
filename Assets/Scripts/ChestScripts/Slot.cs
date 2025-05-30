@@ -340,11 +340,25 @@ public class Slot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, I
     public void SetItem(InventoryItemDatabes.Item item)
     {
         this._item = item;
-        // Nie ustawiaj ikony na slocie, tylko przechowuj sprite w itemIcon
+
         if (item != null && item.itemIcon != null)
+        {
             ItemIcon = item.itemIcon;
+        }
         else
+        {
             ItemIcon = null;
-        //SetItemIcon(null);
+
+            Transform itemIconTransform = transform.Find("ItemIcon");
+            if (itemIconTransform != null)
+            {
+                Image iconImage = itemIconTransform.GetComponent<Image>();
+                if (iconImage != null)
+                {
+                    iconImage.sprite = null;
+                }
+                itemIconTransform.gameObject.SetActive(false);
+            }
+        }
     }
 }

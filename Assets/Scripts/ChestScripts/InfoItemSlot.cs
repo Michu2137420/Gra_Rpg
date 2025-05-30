@@ -51,7 +51,7 @@ public class InfoItemSlot : MonoBehaviour
             TextMeshProUGUI textComponent = itemInfoDescription.GetComponent<TextMeshProUGUI>();
             if (textComponent != null)
             {
-                textComponent.text = !string.IsNullOrEmpty(item.itemName) ? item.itemName : "Brak nazwy";
+                textComponent.text = !string.IsNullOrEmpty(item.itemName) ? item.itemName : "null";
             }
             else
             {

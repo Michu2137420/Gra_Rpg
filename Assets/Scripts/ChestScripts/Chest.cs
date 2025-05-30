@@ -14,12 +14,27 @@ public class Chest : MonoBehaviour
     private bool playerInRange = false;
     private PlayerController player;
 
-    void Awake()
+    void Start()
     {
-        // Automatyczne nadanie unikalnego ID
+        ManagerForListOfChestInventory.instance.AddChestItemsToList(itemsInChest, chestID);
         chestID = nextChestID++;
-
+        //DontDestroyOnLoad(this.gameObject);
         InitializeItemsInList();
+    }
+    private void Update()
+    {
+        if (playerInRange && Input.GetKeyDown(KeyCode.E))
+        {
+            // itemsInChest = ManagerForChestInventory.instance.DowloandListOfItemsFromGlobalListOfLists(chestID);
+            chestInventoryController.chestInventory.SetActive(!chestInventoryController.chestInventory.activeInHierarchy);
+            chestInventoryController.isOpen = !chestInventoryController.isOpen;
+            chestInventoryController.DisplayItemsInInventory(itemsInChest);
+
+        }
+    }
+    void NewIDForChest()
+    {
+
     }
     private void InitializeItemsInList()
     {
@@ -120,10 +135,7 @@ public class Chest : MonoBehaviour
         Debug.Log("Brak miejsca w inwentarzu!");
         return false;
     }
-    void Start()
-    {
-        ManagerForListOfChestInventory.instance.AddChestItemsToList(itemsInChest, chestID);
-    }
+
 
     private void OnTriggerStay2D(Collider2D collision)
     {
@@ -152,16 +164,6 @@ public class Chest : MonoBehaviour
             }
         }
     }
-    private void Update()
-    {
-        if (playerInRange && Input.GetKeyDown(KeyCode.E))
-        {
-            // itemsInChest = ManagerForChestInventory.instance.DowloandListOfItemsFromGlobalListOfLists(chestID);
-            chestInventoryController.chestInventory.SetActive(!chestInventoryController.chestInventory.activeInHierarchy);
-            chestInventoryController.isOpen = !chestInventoryController.isOpen;
-            chestInventoryController.DisplayItemsInInventory(itemsInChest);
 
-        }
-    }
 }
 

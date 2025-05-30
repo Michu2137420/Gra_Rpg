@@ -43,7 +43,7 @@ public class PlayerInventoryController : MonoBehaviour
         {
             if (slots[i] == null) continue;
 
-            if (i < currentyDisplayedItems.Count && currentyDisplayedItems[i] != null)
+            if (i < currentyDisplayedItems.Count && currentyDisplayedItems[i] != null && currentyDisplayedItems[i].itemAmount >= 0)
             {
                 // Wyœwietl przedmiot
                 InventoryItemDatabes.Item item = currentyDisplayedItems[i];
@@ -51,7 +51,7 @@ public class PlayerInventoryController : MonoBehaviour
             }
             else
             {
-                // Wyczyœæ slot jeœli nie ma przedmiotu
+                // Wyczyœæ slot jeœli nie ma przedmiotu lub iloœæ <= 0
                 ClearSlot(slots[i]);
             }
             slots[i].SlotID = i;
@@ -75,9 +75,11 @@ public class PlayerInventoryController : MonoBehaviour
             return;
         }
 
+        // WA¯NE: Ustaw sprite i poka¿ ItemIcon
         iconImage.sprite = item.itemIcon;
-        slot.SetItem(item);
         itemIconTransform.gameObject.SetActive(true);
+
+        slot.SetItem(item);
 
         // Obs³uga tekstu z iloœci¹ przedmiotów
         UpdateAmountText(itemIconTransform, item, slotIndex);
@@ -130,7 +132,13 @@ public class PlayerInventoryController : MonoBehaviour
         Transform itemIconTransform = slot.transform.Find("ItemIcon");
         if (itemIconTransform != null)
         {
-            //itemIconTransform.gameObject.SetActive(false);
+            // WA¯NE: Wyczyœæ sprite i ukryj ItemIcon
+            Image iconImage = itemIconTransform.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                iconImage.sprite = null;
+            }
+            itemIconTransform.gameObject.SetActive(false);
 
             // Wyczyœæ tekst iloœci
             Transform amountOfItemTextTransform = itemIconTransform.Find("AmountOfItemText");
@@ -151,7 +159,6 @@ public class PlayerInventoryController : MonoBehaviour
         }
 
         slot.SetItem(null);
-
     }
 
 
