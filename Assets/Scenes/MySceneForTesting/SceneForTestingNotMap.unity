@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &51476653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240,7 +240,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!156049354 &194826301
 Grid:
   m_ObjectHideFlags: 0
@@ -366,6 +366,8 @@ GameObject:
   - component: {fileID: 458895324}
   - component: {fileID: 458895323}
   - component: {fileID: 458895326}
+  - component: {fileID: 458895327}
+  - component: {fileID: 458895328}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -514,7 +516,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.2224246, y: 0.21854027}
+  m_Size: {x: 0.3, y: 0.3}
   m_EdgeRadius: 0
 --- !u!114 &458895326
 MonoBehaviour:
@@ -530,35 +532,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerInventoryController: {fileID: 1572740892}
   PlayerUseBarController: {fileID: 611615103}
-  PlayerItems: []
+  PlayerItems:
+  - {fileID: 0}
   PlayerInitialInventoryItems:
-  - itemName: "Co\u015B"
-    itemDescription: "Co\u015B"
-    itemID: 1
-    itemValue: 1
-    itemAmount: 1
-    itemType: 0
-    itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
-    isStackable: 1
-  - itemName: "Co\u015B"
-    itemDescription: "Co\u015B"
-    itemID: 1
-    itemValue: 1
-    itemAmount: 1
-    itemType: 0
-    itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
-    isStackable: 1
-  - itemName: "Co\u015B"
-    itemDescription: "Co\u015B"
-    itemID: 1
-    itemValue: 1
-    itemAmount: 1
-    itemType: 0
-    itemIcon: {fileID: 21300000, guid: 024234b7ea460344ab91dce1c9836f9c, type: 3}
-    isStackable: 0
+  - {fileID: 0}
   speed: 1
   maxHealth: 100
   currentHealth: 0
+--- !u!114 &458895327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458895321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73d5e9e5c4e674f459f0267f9e8b957a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &458895328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458895321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f164bc146e756c49ac3448f77a7af32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerInventoryController: {fileID: 1572740892}
+  PlayerUseBarController: {fileID: 611615103}
+  PlayerController: {fileID: 458895326}
 --- !u!1 &611615099
 GameObject:
   m_ObjectHideFlags: 0
@@ -709,8 +716,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: Chest (1)
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6765935704296886895, guid: 531111a02c1f4b444b1880012dc2fc05, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1093,7 +1099,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: ChestInventory
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8099063854615344847, guid: befffd5968c16ca4396734a9836f47c1, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1113,7 +1120,7 @@ GameObject:
   - component: {fileID: 1150964086}
   m_Layer: 0
   m_Name: BuildingStation
-  m_TagString: Untagged
+  m_TagString: SingleInventoryDisplay
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1133,14 +1140,7 @@ MonoBehaviour:
   buildingInventoryController: {fileID: 861721221}
   buildingTabIds: 
   buldingItemsToBuildPage1:
-  - itemName: 1
-    itemDescription: 1
-    itemID: 1
-    itemValue: 1
-    itemAmount: 1
-    itemType: 1
-    itemIcon: {fileID: 21300000, guid: f5e853af8656e25428b72c63612959c4, type: 3}
-    isStackable: 0
+  - {fileID: 0}
   buldingItemsToBuildPage2: []
   buldingItemsToBuildPage3: []
   buldingItemsToBuildPage4: []
@@ -2694,6 +2694,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8161527284849251039, guid: 67d7479a91ec8994bbdf7476b8725635, type: 3}
+      propertyPath: resourcePrefab
+      value: 
+      objectReference: {fileID: 9086889879446313200, guid: bce8e887c3703004594cdcf41eb16e6a, type: 3}
     - target: {fileID: 8521660812599865883, guid: 67d7479a91ec8994bbdf7476b8725635, type: 3}
       propertyPath: m_Name
       value: Tree

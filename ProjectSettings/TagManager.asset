@@ -4,8 +4,9 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Chest
   - SlotItemIcon
+  - SingleInventoryDisplay
+  - DoubleInventoryDisplay
   layers:
   - Default
   - TransparentFX

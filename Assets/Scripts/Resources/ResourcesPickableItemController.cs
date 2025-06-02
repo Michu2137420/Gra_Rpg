@@ -24,8 +24,7 @@ public class ResourcesPickableItemController : MonoBehaviour
                 {
                     if (playerController.PlayerItems[i] == null)
                     {
-                        playerController.PlayerItems[i] = pickAbleItem;
-                        // Wywo³anie eventu po dodaniu itemu
+                        playerController.AddItemToInventory(pickAbleItem);
                         OnItemPickedUp?.Invoke();
                         break;
                     }

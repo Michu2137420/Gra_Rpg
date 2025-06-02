@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime;
@@ -13,8 +14,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float speed;
     public int maxHealth;
     public int currentHealth;
+
+
+
     // Start is called before the first frame update
-    void Start()
+    void Start()    
     {
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
@@ -25,6 +29,59 @@ public class PlayerController : MonoBehaviour
     {
        InitializeItemsInList();
     }
+
+    void Update()
+    {
+        // Logika poruszania siê postaci
+        movementLogic();
+
+    }
+    private void movementLogic()
+    {
+        Vector2 move = transform.position;
+        if (Input.GetKey(KeyCode.W))
+        {
+            move.y += 0.1f * speed;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            move.y -= 0.1f * speed;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            move.x -= 0.1f * speed;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            move.x += 0.1f * speed;
+        }
+        transform.position = move;
+    }
+
+   
+
+    // tak naprawde robie t¹ funkcje czy dzia³a logika podnoszenia itemów i ich dzia³ania uzywanie itemów bedzei w ekwipunku
+    public void FunctionToManageHealth(int amount)
+    {
+        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
+        Debug.Log("Current Health: " + currentHealth);
+    }
+    private void OnEnable()
+    {
+        ResourcesPickableItemController.OnItemPickedUp += HandleItemPickedUp;
+    }
+
+    private void OnDisable()
+    {
+        ResourcesPickableItemController.OnItemPickedUp -= HandleItemPickedUp;
+    }
+
+    private void HandleItemPickedUp()
+    {
+       PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
+        PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
+    }
+
     private void InitializeItemsInList()
     {
         // Inicjalizacja listy o wielkoœci równej liczbie slotów w Inv
@@ -100,17 +157,18 @@ public class PlayerController : MonoBehaviour
         {
             if (PlayerItems[i] == null)
             {
-                // Stwórz now¹ kopiê itemu aby unikn¹æ problemów z referencjami
-                PlayerItems[i] = new InventoryItemDatabes.Item(
-                    newItem.itemName,
-                    newItem.itemDescription,
-                    newItem.itemID,
-                    newItem.itemValue,
-                    newItem.itemAmount,
-                    newItem.itemIcon,
-                    newItem.itemType
-                );
-                PlayerItems[i].isStackable = newItem.isStackable;
+                // Utwórz now¹ instancjê ScriptableObject i skopiuj dane z newItem
+                var itemInstance = ScriptableObject.CreateInstance<InventoryItemDatabes.Item>();
+                itemInstance.itemName = newItem.itemName;
+                itemInstance.itemDescription = newItem.itemDescription;
+                itemInstance.itemID = newItem.itemID;
+                itemInstance.itemValue = newItem.itemValue;
+                itemInstance.itemAmount = newItem.itemAmount;
+                itemInstance.itemIcon = newItem.itemIcon;
+                itemInstance.itemType = newItem.itemType;
+                itemInstance.isStackable = newItem.isStackable;
+
+                PlayerItems[i] = itemInstance;
 
                 // Odœwie¿ wyœwietlanie inwentarza jeœli jest otwarty
                 if (PlayerInventoryController.isOpen)
@@ -123,80 +181,13 @@ public class PlayerController : MonoBehaviour
 
                 return true;
             }
+
         }
 
         // Brak miejsca w inwentarzu
         Debug.Log("Brak miejsca w inwentarzu!");
         return false;
     }
-    void Update()
-    {
-        // Logika poruszania siê postaci
-        Vector2 move = transform.position;
-        if (Input.GetKey(KeyCode.W))
-        {
-            move.y += 0.1f * speed;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            move.y -= 0.1f * speed;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            move.x -= 0.1f * speed;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            move.x += 0.1f * speed;
-        }
-        transform.position = move;
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            bool nowOpen = !PlayerInventoryController.isOpen;
-            PlayerInventoryController.playerInventory.SetActive(nowOpen);
-            PlayerInventoryController.isOpen = nowOpen;
-
-            // PlayerUseBarInventory jest widoczny tylko gdy ekwipunek jest zamkniêty
-            if (PlayerUseBarController.PlayerUseBarInventory != null)
-            {
-                PlayerUseBarController.PlayerUseBarInventory.SetActive(!nowOpen);
-
-                // Jeœli ekwipunek jest zamykany, odœwie¿amy pasek u¿ycia
-                if (!nowOpen)
-                {
-                    PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
-                }
-            }
-
-            if (nowOpen)
-            {
-                PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
-            }
-        }
-    }
-    // tak naprawde robie t¹ funkcje czy dzia³a logika podnoszenia itemów i ich dzia³ania uzywanie itemów bedzei w ekwipunku
-    public void FunctionToManageHealth(int amount)
-    {
-        currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
-        Debug.Log("Current Health: " + currentHealth);
-    }
-    private void OnEnable()
-    {
-        ResourcesPickableItemController.OnItemPickedUp += HandleItemPickedUp;
-    }
-
-    private void OnDisable()
-    {
-        ResourcesPickableItemController.OnItemPickedUp -= HandleItemPickedUp;
-    }
-
-    private void HandleItemPickedUp()
-    {
-       PlayerInventoryController.DisplayItemsInInventory(PlayerItems);
-        PlayerUseBarController.DisplayItemsInUseBarInventory(PlayerItems);
-    }
-
 
 
 }

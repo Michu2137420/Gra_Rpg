@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
 public class Chest : MonoBehaviour
 {
     public ChestInventoryController chestInventoryController;
@@ -12,7 +12,6 @@ public class Chest : MonoBehaviour
     private static int nextChestID = 0; 
 
     private bool playerInRange = false;
-    private PlayerController player;
 
     void Start()
     {
@@ -23,13 +22,33 @@ public class Chest : MonoBehaviour
     }
     private void Update()
     {
-        if (playerInRange && Input.GetKeyDown(KeyCode.E))
+    }
+    private void OnEnable()
+    {
+        InventoryGuiManager.openSecondInventory += OpenChestInventory;
+        InventoryGuiManager.closeSecondInventory += CloseChestInventory;
+    }
+    private void OnDisable()
+    {
+        InventoryGuiManager.openSecondInventory -= OpenChestInventory;
+        InventoryGuiManager.closeSecondInventory -= CloseChestInventory;
+    }
+    private void OpenChestInventory()
+    {
+        if (playerInRange)
         {
-            // itemsInChest = ManagerForChestInventory.instance.DowloandListOfItemsFromGlobalListOfLists(chestID);
-            chestInventoryController.chestInventory.SetActive(!chestInventoryController.chestInventory.activeInHierarchy);
+            chestInventoryController.chestInventory.SetActive(true);
             chestInventoryController.isOpen = !chestInventoryController.isOpen;
             chestInventoryController.DisplayItemsInInventory(itemsInChest);
-
+        }
+    }
+    private void CloseChestInventory()
+    {
+        if (playerInRange)
+        {
+            chestInventoryController.chestInventory.SetActive(false);
+            chestInventoryController.isOpen = !chestInventoryController.isOpen;
+            chestInventoryController.DisplayItemsInInventory(itemsInChest);
         }
     }
     void NewIDForChest()
@@ -135,13 +154,11 @@ public class Chest : MonoBehaviour
         Debug.Log("Brak miejsca w inwentarzu!");
         return false;
     }
-
-
     private void OnTriggerStay2D(Collider2D collision)
     {
         if (collision.GetComponent<PlayerController>() != null)
         {
-            player = collision.GetComponent<PlayerController>();
+            PlayerController player = collision.GetComponent<PlayerController>();
             Collider2D chestCollider = GetComponent<BoxCollider2D>();
 
             if (collision.IsTouching(chestCollider))
@@ -151,19 +168,6 @@ public class Chest : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.GetComponent<PlayerController>() != null)
-        {
-            playerInRange = false;
-
-            if (chestInventoryController != null && chestInventoryController.isOpen)
-            {
-                chestInventoryController.chestInventory.SetActive(false);
-                chestInventoryController.isOpen = false;
-            }
-        }
-    }
 
 }
 

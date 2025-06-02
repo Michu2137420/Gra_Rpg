@@ -14,10 +14,6 @@ public class ResourcesController : MonoBehaviour
     {
         currentDurability = maxDurability;
     }
-    void Update()
-    {
-        
-    }
     private void FunctionToManageResourceDurability(int amount)
     {
         currentDurability = Mathf.Clamp(currentDurability + amount, 0, maxDurability);

@@ -155,12 +155,12 @@ public class GridBuildingSystem : MonoBehaviour
         TileBase[] baseArray = GetTilesBlock(area, MainTileMap);
         foreach (TileBase tile in baseArray)
         {
-            if (tile != tileDictionary[TileType.Empty])
+            if (tile != tileDictionary[TileType.White] && tile != tileDictionary[TileType.Green])
             {
-                return false; // Area is not empty
+                return false; // Można stawiać tylko na białych lub zielonych
             }
         }
-        return true; // Area is empty
+        return true;
     }
     public void TakeArea(BoundsInt area)
     {

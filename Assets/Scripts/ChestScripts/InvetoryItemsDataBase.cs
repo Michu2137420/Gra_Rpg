@@ -12,8 +12,9 @@ public class InventoryItemDatabes : MonoBehaviour
         //DontDestroyOnLoad(this.gameObject);
     }
 
-    [System.Serializable]
-    public class Item
+    //[System.Serializable]
+    [CreateAssetMenu(fileName = "NewItem", menuName = "Inventory/Item")]
+    public class Item: ScriptableObject
     {
         public enum ItemType //Typ itemu mozna dodaæ potem wiecej
         {
