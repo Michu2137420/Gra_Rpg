@@ -32,6 +32,7 @@ public class InventoryItemDatabes : MonoBehaviour
         public ItemType itemType;
         public Sprite itemIcon;
         public bool isStackable = false;
+        public GameObject itemPrefab;
         //Konstruktor itemu
         public Item(string name, string description, int id, int value, int amount, Sprite icon, ItemType itemType)
         {
@@ -41,8 +42,9 @@ public class InventoryItemDatabes : MonoBehaviour
             itemValue = value;
             itemAmount = amount;
             itemIcon = icon;
-            isStackable=false;
+            isStackable = false;
             this.itemType = itemType;
+            itemPrefab = null;
         }
     }
 

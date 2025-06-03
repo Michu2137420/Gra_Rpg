@@ -8,18 +8,24 @@ using UnityEngine.UI;
 public class BuildingInventoryController : MonoBehaviour
 {
     public GameObject buildingInventory { get; private set; }
+    public BuildingStation buildingStation;
     [field: SerializeField] public int numberOfSlots { get; private set; } = 10;
     [SerializeField] private GameObject buildingInventorySlotPrefab;
     [SerializeField] private Transform buildingInventoryPlaceTransform;
-    [field: SerializeField] private List<BuildingInventorySlot> buildingSlots = new List<BuildingInventorySlot>();
-    [field:SerializeField] public GameObject buildingItemPrefab { get; private set; }
+    [field: SerializeField] public GameObject buildingItemPrefab { get;  set; }
+
 
     private List<InventoryItemDatabes.Item> currentyDisplayedItems = new List<InventoryItemDatabes.Item>();
+    [field: SerializeField] private List<BuildingInventorySlot> buildingSlots = new List<BuildingInventorySlot>();
+
+
+    public int currentPageIdInBuildingManager { get; private set; }
 
     void Start()
     {
         buildingInventory = gameObject;
         buildingInventory.SetActive(false);
+        currentPageIdInBuildingManager = buildingStation.currentPageIdInBuildingStation;
         DisplaySlotsInBuildingMenu();
     }
 

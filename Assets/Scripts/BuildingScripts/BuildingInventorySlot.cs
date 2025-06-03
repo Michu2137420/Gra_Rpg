@@ -7,7 +7,10 @@ using UnityEngine.UI;
 public class BuildingInventorySlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public static event Action<GameObject> OnItemChoosenFromBuildingMenu;
+    public static event Action OnClickCloseBuildingInventory;
+
     private BuildingInventoryController buildingInventoryController;
+    [field:SerializeField] public GameObject buildingPrefab { get;  set; }
 
     public int SlotID;
     private InventoryItemDatabes.Item _item;
@@ -19,8 +22,20 @@ public class BuildingInventorySlot : MonoBehaviour, IPointerClickHandler, IPoint
     }
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log($"przeslano {buildingInventoryController.buildingItemPrefab}");
-        OnItemChoosenFromBuildingMenu.Invoke(buildingInventoryController.buildingItemPrefab);
+        // Zak³adam, ¿e InventoryItemDatabes.Item ma referencjê do prefabrykatów budynków
+        // np. item.buildingPrefab lub podobne pole
+        if (_item != null && _item is InventoryItemDatabes.Item item)
+        {
+            // Przypisz prefab z itema do kontrolera
+            buildingInventoryController.buildingItemPrefab = item.itemPrefab;
+            Debug.Log($"Ustawiono prefab: {buildingInventoryController.buildingItemPrefab} na podstawie itema: {item.itemName}");
+            OnItemChoosenFromBuildingMenu?.Invoke(buildingInventoryController.buildingItemPrefab);
+            OnClickCloseBuildingInventory?.Invoke();
+        }
+        else
+        {
+            Debug.LogWarning("Brak przypisanego itema do slotu lub item nie zawiera prefabrykatu!");
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)

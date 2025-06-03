@@ -44,7 +44,7 @@ public class Chest : MonoBehaviour
     }
     private void CloseChestInventory()
     {
-        if (playerInRange)
+        if (playerInRange&&chestInventoryController!=null)
         {
             chestInventoryController.chestInventory.SetActive(false);
             chestInventoryController.isOpen = !chestInventoryController.isOpen;

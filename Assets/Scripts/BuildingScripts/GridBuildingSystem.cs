@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,11 +7,14 @@ using UnityEngine.Tilemaps;
 
 public class GridBuildingSystem : MonoBehaviour
 {
-    public static GridBuildingSystem current;
+    public static GridBuildingSystem Instance;
+    public static event Action OnClickOpenBuildingInventory;
 
     public GridLayout gridLayout;
     public Tilemap MainTileMap;
     public Tilemap TempTileMap;
+    private Transform childMainTilemap;
+    private Transform childTempTilemap;
 
     public static Dictionary<TileType, TileBase> tileDictionary = new Dictionary<TileType, TileBase>();
 
@@ -21,9 +25,23 @@ public class GridBuildingSystem : MonoBehaviour
 
     private void Awake()
     {
-        current = this;
-    }
+        GetMainTileMap();
+        childMainTilemap.gameObject.SetActive(false);
+        childTempTilemap.gameObject.SetActive(false);
+        Instance = this;
 
+
+    }
+    private Transform GetMainTileMap()
+    {
+        GetTempTilemap();
+       return childMainTilemap = transform.Find("MainTilemap");
+    }
+    private Transform GetTempTilemap()
+    {
+
+        return childTempTilemap = transform.Find("TempTilemap");
+    }
     private void Start()
     {
         string tilePath = @"Prefabs/Placeable/";
@@ -44,36 +62,42 @@ public class GridBuildingSystem : MonoBehaviour
         {
             return;
         }
-        if (Input.GetMouseButtonDown(0))
+
+        // Ciągłe podążanie za myszką
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 cellPos = gridLayout.LocalToCell(mousePos);
+
+        if (prevPos != cellPos)
+        {
+            temp.transform.position = gridLayout.CellToLocalInterpolated(cellPos + new Vector3(0.5f, 0.5f, 0f));
+            prevPos = cellPos;
+            FollowBuilding();
+        }
+
+        // Stawianie budynku na kliknięcie lub spację
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
         {
             if (EventSystem.current.IsPointerOverGameObject())
             {
                 return;
             }
-            if (!temp.placed)
-            {
-                Vector2 touchPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector3 cellPos = gridLayout.LocalToCell(touchPos);
-                if (prevPos != cellPos)
-                {
-                    temp.transform.position = gridLayout.CellToLocalInterpolated(cellPos + new Vector3(0.5f, 0.5f, 0f));
-                    prevPos = cellPos;
-                    FollowBuilding();
-                }
-            }
-
-        }
-        else if (Input.GetKeyDown(KeyCode.Space))
-        {
             if (temp.CanBePlaced())
             {
                 temp.Place();
+                childMainTilemap.gameObject.SetActive(false);
+                childTempTilemap.gameObject.SetActive(false); // Dezaktywuj tymczasową mapę
+                OnClickOpenBuildingInventory.Invoke();
+                temp = null; // Wyczyść referencję po postawieniu
             }
         }
+        // Anulowanie na Escape
         else if (Input.GetKeyDown(KeyCode.Escape))
         {
             ClearArea();
             Destroy(temp.gameObject);
+            childMainTilemap.gameObject.SetActive(false);
+            childTempTilemap.gameObject.SetActive(false); // Dezaktywuj tymczasową mapę
+            temp = null; // Wyczyść referencję po usunięciu
         }
     }
     void OnEnable()
@@ -116,6 +140,8 @@ public class GridBuildingSystem : MonoBehaviour
 
     public void InitializeWithBuilding(GameObject building)
     {
+        childMainTilemap.gameObject.SetActive(true); // Aktywuj tymczasową mapę
+        childTempTilemap.gameObject.SetActive(true); // Aktywuj główną mapę
         temp = Instantiate(building, Vector3.zero, Quaternion.identity).GetComponent<Building>();
         FollowBuilding();
     }

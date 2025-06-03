@@ -63,11 +63,18 @@ public class InventoryGuiManager : MonoBehaviour
         // Jeœli jesteœ przy obiekcie z pojedynczym ekwipunkiem (np. NPC, terminal)
         if (singleInventoryDisplayObject)
         {
-            Debug.Log("Jesteœ przy obiekcie z pojedynczym ekwipunkiem");
-            // Przy pojedynczym obiekcie zawsze zamykamy wszystko
-            closeBothInventorys();
-            buildingStation.OpeningOrClosingInventory(); 
-            return;
+            if (howManyOpen == 0)
+            { Debug.Log("Jesteœ przy obiekcie z pojedynczym ekwipunkiem");
+                // Przy pojedynczym obiekcie zawsze zamykamy wszystko
+                closeBothInventorys();
+                buildingStation.OpeningBuildingInventory();
+                return;
+            }
+            if (howManyOpen == 1)
+            {
+                buildingStation.CloseBuildingInventory();
+                return;
+            }
         }
 
         // Jeœli NIE jesteœ przy ¿adnym obiekcie - zarz¹dzaj tylko swoim ekwipunkiem

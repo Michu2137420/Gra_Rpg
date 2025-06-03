@@ -6,32 +6,36 @@ public class BuildingStation : MonoBehaviour
 {
     private bool playerInRange { get; set; } = false;
     [SerializeField] private BuildingInventoryController buildingInventoryController;
-    [SerializeField] private List<int> buildingTabIds = new List<int>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage1 = new List<InventoryItemDatabes.Item>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage2 = new List<InventoryItemDatabes.Item>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage3 = new List<InventoryItemDatabes.Item>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage4 = new List<InventoryItemDatabes.Item>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage5 = new List<InventoryItemDatabes.Item>();
-    [field:SerializeField] List<InventoryItemDatabes.Item> buldingItemsToBuildPage6 = new List<InventoryItemDatabes.Item>();
-    [SerializeField] private int amountOfPagesInBuildingMenu;
+    [field: SerializeField] public int currentPageIdInBuildingStation { get; set; }
 
     private void Start()
     {
-        InitializeIdForPages();
-        UploadPagesListToManager();
-        InitializeAllBuildingTabs();
-
     }
     private void Update()
     {
         
     }
-    public void OpeningOrClosingInventory()
+    public void OpeningBuildingInventory()
     {
-        
-            buildingInventoryController.buildingInventory.SetActive(!buildingInventoryController.buildingInventory.activeInHierarchy);
-            buildingInventoryController.DisplayItemsInInventory(buldingItemsToBuildPage1);
-        
+        List<InventoryItemDatabes.Item> tempList = OpeningHelpFunction(currentPageIdInBuildingStation);
+        Debug.Log($"Otwieranie inwentarza budynku z ID strony: {currentPageIdInBuildingStation}");
+        buildingInventoryController.buildingInventory.SetActive(true);
+        buildingInventoryController.DisplayItemsInInventory(tempList);
+        InventoryGuiManager.howManyOpen=1;
+
+    }
+    private List<InventoryItemDatabes.Item> OpeningHelpFunction(int currentPageID)
+    {
+        return  ManagerForListsOfConentForPagesInBuildingMenu.Instance.DowloandListOfItemsFromGlobalListOfLists(currentPageID);
+ 
+    }
+    public void CloseBuildingInventory()
+    {
+        if (buildingInventoryController.buildingInventory.activeInHierarchy)
+        {
+            buildingInventoryController.buildingInventory.SetActive(false);
+            InventoryGuiManager.howManyOpen=0;
+        }
     }
     private void OnTriggerStay2D(Collider2D collision)
     {
@@ -40,83 +44,30 @@ public class BuildingStation : MonoBehaviour
             playerInRange = true;
         }
     }
+    private void OnEnable()
+    {
+        BuildingInventorySlot.OnClickCloseBuildingInventory += CloseBuildingInventory;
+        GridBuildingSystem.OnClickOpenBuildingInventory += OpeningBuildingInventory;
+    }
+    private void OnDisable()
+    {
+        BuildingInventorySlot.OnClickCloseBuildingInventory -= CloseBuildingInventory;
+        GridBuildingSystem.OnClickOpenBuildingInventory -= OpeningBuildingInventory;
+    }
     private void OnTriggerExit2D(Collider2D collision)
     {
         playerInRange = false;
         if(buildingInventoryController!=null)
         {if (buildingInventoryController.buildingInventory.activeInHierarchy)
             {
-                OpeningOrClosingInventory();
+                CloseBuildingInventory();
             }
         }
 
     }
-    private void InitializeIdForPages()
-    {
-        buildingTabIds.Clear();
-        for (int i = 0; i < amountOfPagesInBuildingMenu; i++)
-        {
-            buildingTabIds.Add(i);
+  
 
-        }
 
-    }
-    private void UploadPagesListToManager()
-    {
-        // Lista wszystkich list itemów do budowy
-        var allPages = new List<List<InventoryItemDatabes.Item>> {
-            buldingItemsToBuildPage1,
-            buldingItemsToBuildPage2,
-            buldingItemsToBuildPage3,
-            buldingItemsToBuildPage4,
-            buldingItemsToBuildPage5,
-            buldingItemsToBuildPage6
-        };
-        for (int i = 0; i < buildingTabIds.Count && i < allPages.Count; i++)
-        {
-            ManagerForListsOfConentForPagesInBuildingMenu.Instance.AddBuildingMenuItemsToList(allPages[i], buildingTabIds[i]);
-        }
-    }
-    private void InitializeItemsInList(List<InventoryItemDatabes.Item> listOfItemsToBuild)
-    {
-        // Inicjalizuje przekazan¹ listê itemów do budowy (np. dla danej zak³adki)
-        if (listOfItemsToBuild == null)
-            return;
-
-        if (buildingInventoryController != null)
-        {
-            int slots = buildingInventoryController.numberOfSlots;
-
-            // Upewnij siê, ¿e lista ma dok³adnie tyle elementów co slotów, wype³niaj¹c puste miejsca nullami
-            if (listOfItemsToBuild.Count < slots)
-            {
-                int toAdd = slots - listOfItemsToBuild.Count;
-                for (int i = 0; i < toAdd; i++)
-                {
-                    listOfItemsToBuild.Add(null);
-                }
-            }
-            else if (listOfItemsToBuild.Count > slots)
-            {
-                listOfItemsToBuild.RemoveRange(slots, listOfItemsToBuild.Count - slots);
-            }
-        }
-        else
-        {
-            Debug.LogWarning("BuldingInventoryController is null!");
-        }
-    }
-
-    // Przyk³ad u¿ycia dla wszystkich zak³adek (np. w Start lub innej metodzie inicjalizuj¹cej):
-    private void InitializeAllBuildingTabs()
-    {
-        InitializeItemsInList(buldingItemsToBuildPage1);
-        InitializeItemsInList(buldingItemsToBuildPage2);
-        InitializeItemsInList(buldingItemsToBuildPage3);
-        InitializeItemsInList(buldingItemsToBuildPage4);
-        InitializeItemsInList(buldingItemsToBuildPage5);
-        InitializeItemsInList(buldingItemsToBuildPage6);
-    }
 }
 
 
